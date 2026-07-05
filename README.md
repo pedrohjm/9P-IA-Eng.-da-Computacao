@@ -3,16 +3,18 @@
 Engenharia da Computação — IFTM
 Disciplina de Inteligência Artificial — Prof. Jefferson
 
-Coleção de trabalhos práticos da disciplina, cobrindo Redes Neurais Artificiais e Algoritmos Genéticos. Cada trabalho é uma aplicação web independente (HTML + JavaScript puro, sem build), reunida no [hub-trabalhos.html](hub-trabalhos.html) — um hub com barra lateral que carrega cada trabalho num iframe (exceto o Trabalho 06, que abre em aba nova por exigir seleção de pasta local).
+🔗 **Acesse online:** https://pedrohjm.github.io/9P-IA-Eng.-da-Computacao/
+
+Coleção de trabalhos práticos da disciplina, cobrindo Redes Neurais Artificiais e Algoritmos Genéticos. Cada trabalho é uma aplicação web independente (HTML + JavaScript puro, sem build), reunida no [index.html](index.html) — um hub com barra lateral que carrega cada trabalho num iframe (exceto o Trabalho 06, que abre em aba nova por exigir seleção de pasta local).
 
 ## Estrutura do projeto
 
 ```
-Trabalho NN/        → HTML + JS de cada trabalho
-assets/docs/        → slides e enunciados em PDF de cada aula/trabalho
-assets/datasets/    → datasets usados nos treinamentos (CSV, imagens)
-assets/scripts/     → scripts auxiliares de preparo de dados
-hub-trabalhos.html  → hub de navegação entre os trabalhos
+Trabalho NN/     → HTML + JS de cada trabalho
+assets/docs/     → slides e enunciados em PDF de cada aula/trabalho
+assets/datasets/ → datasets usados nos treinamentos (CSV, imagens)
+assets/scripts/  → scripts auxiliares de preparo de dados
+index.html       → hub de navegação entre os trabalhos (publicado via GitHub Pages)
 ```
 
 ## Redes Neurais Artificiais
@@ -60,4 +62,5 @@ Nova abordagem ao Caixeiro Viajante, agora com seleção por ranking (linear e e
 
 ## Como usar
 
-Abra o [hub-trabalhos.html](hub-trabalhos.html) no navegador e escolha um trabalho na barra lateral. Cada trabalho também pode ser aberto isoladamente, direto do seu arquivo HTML dentro da respectiva pasta `Trabalho NN/`.
+- **Online:** acesse https://pedrohjm.github.io/9P-IA-Eng.-da-Computacao/ e escolha um trabalho na barra lateral.
+- **Local:** abra o [index.html](index.html) no navegador. Cada trabalho também pode ser aberto isoladamente, direto do seu arquivo HTML dentro da respectiva pasta `Trabalho NN/` (o Trabalho 06 precisa ser aberto assim, ou pela aba nova do hub, para o seletor de pasta funcionar).

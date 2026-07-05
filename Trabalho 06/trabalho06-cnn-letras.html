@@ -182,6 +182,19 @@
     .status-warn { color: var(--warn); font-family: var(--mono); }
     .status-muted { color: var(--muted); font-family: var(--mono); }
 
+    .dataset-note {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      margin: 10px 0 16px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .dataset-note a { color: var(--accent); }
+
     .pred-main {
       margin: 0;
       font-size: 4.2rem;
@@ -245,7 +258,15 @@
 <body>
   <div class="card">
     <h1 class="title">Trabalho 06 - IA de Reconhecimento de Letras</h1>
-    <p class="sub">Treino e inferencia com dataset by_class.</p>
+    <p class="sub">Rede Neural Convolucional (CNN) implementada manualmente em JavaScript, com treino e inferencia via dataset by_class.</p>
+
+    <div class="dataset-note">
+      Os testes deste trabalho foram feitos com o dataset <strong>by_class</strong> do
+      <a href="https://www.nist.gov/srd/nist-special-database-19" target="_blank" rel="noopener">NIST Special Database 19</a>
+      (62 classes: digitos 0-9, letras maiusculas e minusculas).
+      O dataset nao foi enviado junto ao repositorio devido ao tamanho do arquivo (~1,5 milhao de imagens);
+      para treinar localmente, baixe-o no link acima e selecione a pasta <code>by_class</code> pelo botao abaixo.
+    </div>
 
     <div class="tabs">
       <button class="tab active" id="tabTrainBtn" type="button">Treinamento IA</button>
