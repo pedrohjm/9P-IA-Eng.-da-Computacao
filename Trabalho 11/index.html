@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 11 — Caixeiro Viajante</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1180px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 14px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      padding: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .range-val {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--accent);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .graph-wrap { position: relative; }
+
+    .graph-canvas {
+      width: 100%;
+      height: 280px;
+      display: block;
+      background: #081523;
+    }
+
+    .graph-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+
+    .legend-item { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+
+    .metrics-log-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+
+    .route-display {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      background: #081523;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin-top: 6px;
+      word-break: break-all;
+      line-height: 1.8;
+      color: var(--accent);
+      min-height: 40px;
+    }
+
+    .log {
+      height: 160px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    .city-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3px;
+      margin-bottom: 8px;
+    }
+
+    .city-item {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      background: #081a2b;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+    }
+
+    .city-item .ci { color: var(--accent); font-weight: bold; }
+    .city-item.start { border-color: #ffc800; color: #ffc800; }
+
+    @media (max-width: 800px) {
+      .ag-layout { grid-template-columns: 1fr; }
+      .metrics-log-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 11 — Caixeiro Viajante · Triângulo Mineiro</h1>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: configuração ─────────────────────────────── -->
+    <div class="panel">
+      <h2>Problema</h2>
+      <div class="formula">min Σ dist(cᵢ, cᵢ₊₁)</div>
+      <div class="section-label">Cidades (fixas — dados reais)</div>
+      <div class="city-grid" id="cityGrid"></div>
+
+      <hr class="sep">
+      <h2>Parâmetros do AG</h2>
+
+      <div class="row">
+        <label>Tamanho da população</label>
+        <input type="number" id="popSize" min="4" max="500" step="2" value="60" />
+      </div>
+
+      <div class="row">
+        <label>Número de gerações</label>
+        <input type="number" id="generations" min="1" max="5000" value="300" />
+      </div>
+
+      <div class="section-label">Probabilidade de cruzamento</div>
+      <div class="row">
+        <input type="range" id="crossSlider" min="10" max="100" step="5" value="85" />
+        <span class="range-val" id="crossVal">85%</span>
+      </div>
+
+      <div class="section-label">Probabilidade de mutação</div>
+      <div class="row">
+        <input type="range" id="mutSlider" min="1" max="50" step="1" value="10" />
+        <span class="range-val" id="mutVal">10%</span>
+      </div>
+
+      <hr class="sep">
+      <button class="btn-accent" id="runBtn" type="button">▶ Executar AG</button>
+      <button id="resetBtn" type="button">↺ Reiniciar</button>
+    </div>
+
+    <!-- ── RIGHT: mapa + métricas + log ──────────────────── -->
+    <div class="right-col">
+
+      <!-- Mapa -->
+      <div class="panel">
+        <h2>Mapa — Melhor Rota Encontrada</h2>
+        <div class="graph-wrap">
+          <canvas id="mapCanvas" class="graph-canvas" width="860" height="280"></canvas>
+        </div>
+        <div class="graph-legend">
+          <span class="legend-item">
+            <span style="color:#ffc800">★</span> Uberaba (partida) &nbsp;
+            <span style="color:var(--accent)">●</span> Cidade &nbsp;
+            <span style="color:var(--pink)">━</span> Estrada direta &nbsp;
+            <span style="color:var(--pink)">┅</span> Via cidade intermediária
+          </span>
+          <span class="legend-item" id="graphLabel">—</span>
+        </div>
+      </div>
+
+      <!-- Métricas + log -->
+      <div class="panel">
+        <h2>Resultado</h2>
+        <div class="metrics-log-grid">
+
+          <div>
+            <div class="metric">
+              <span class="metric-label">Geração</span>
+              <span class="metric-val" id="mGen">0</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Melhor distância</span>
+              <span class="metric-val pink" id="mDist">— km</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Cruzamento</span>
+              <span class="metric-val blue" id="mCross">—</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Mutação</span>
+              <span class="metric-val" id="mMut">—</span>
+            </div>
+            <div class="section-label" style="margin-top:10px;">Melhor rota (cromossomo)</div>
+            <div class="route-display" id="routeDisplay">—</div>
+          </div>
+
+          <div>
+            <div class="section-label">Log de execução</div>
+            <div class="log" id="logBox">Aguardando execução...</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="t11.js"></script>
+</body>
+</html>

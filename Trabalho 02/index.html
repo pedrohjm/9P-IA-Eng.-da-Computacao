@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 02 — Perceptron Simples</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1180px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 1.0rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    input[type="number"]:read-only {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .letter-block {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    .letter-title {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 12px);
+      grid-template-rows: repeat(7, 12px);
+      gap: 2px;
+    }
+
+    .pixel {
+      width: 12px;
+      height: 12px;
+      background: #081a2b;
+      border: 1px solid var(--line);
+    }
+
+    .pixel.on { background: var(--accent); border-color: var(--accent); }
+
+    .metrics-log-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+
+    .weights-display {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      background: #081523;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      margin-top: 6px;
+      line-height: 1.7;
+      color: var(--accent);
+      word-break: break-all;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      margin-top: 8px;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    table.data-table th {
+      color: var(--muted);
+      background: #0b1a2b;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 0.64rem;
+      letter-spacing: 0.5px;
+    }
+
+    table.data-table td.ok  { color: var(--ok); }
+    table.data-table td.err { color: var(--warn); }
+
+    .log {
+      height: 200px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    @media (max-width: 800px) {
+      .ag-layout { grid-template-columns: 1fr; }
+      .metrics-log-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 02 — Perceptron Simples</h1>
+  <p class="sub">Reconhecimento das letras A e B (matrizes bipolares 7×7)</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: letras + parâmetros ─────────────────────────── -->
+    <div class="panel">
+      <h2>Letras de Referência</h2>
+      <div class="letter-block">
+        <div>
+          <div class="letter-title">Letra A</div>
+          <div class="pixel-grid" id="gridA"></div>
+        </div>
+        <div>
+          <div class="letter-title">Letra B</div>
+          <div class="pixel-grid" id="gridB"></div>
+        </div>
+      </div>
+
+      <hr class="sep">
+      <h2>Regra do Perceptron</h2>
+      <div class="formula">w += α·(alvo − y)·x</div>
+
+      <div class="row">
+        <label>Taxa de aprendizagem (α)</label>
+        <input type="number" id="alfaInput" min="0.01" max="1" step="0.01" value="0.1" />
+      </div>
+      <div class="row">
+        <label>Limiar</label>
+        <input type="number" id="limiarInput" value="0" readonly />
+      </div>
+      <div class="row">
+        <label>Máx. de ciclos</label>
+        <input type="number" id="maxCiclosInput" min="1" max="100000" value="1000" />
+      </div>
+
+      <hr class="sep">
+      <button class="btn-accent" id="trainBtn" type="button">▶ Treinar Rede</button>
+      <button id="testBtn" type="button">🔍 Testar Rede</button>
+      <button id="resetBtn" type="button">↺ Reiniciar (novos pesos aleatórios)</button>
+    </div>
+
+    <!-- ── RIGHT: métricas + pesos + teste + log ─────────────── -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Estado da Rede</h2>
+        <div class="metrics-log-grid">
+          <div>
+            <div class="metric">
+              <span class="metric-label">Status</span>
+              <span class="metric-val" id="mStatus">Não treinada</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Ciclo</span>
+              <span class="metric-val blue" id="mCiclo">0</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Bias</span>
+              <span class="metric-val pink" id="mBias">—</span>
+            </div>
+            <div class="section-label" style="margin-top:10px;">Pesos (10 primeiros de 49)</div>
+            <div class="weights-display" id="weightsDisplay">—</div>
+          </div>
+
+          <div>
+            <div class="section-label">Teste da rede</div>
+            <table class="data-table">
+              <thead><tr><th>Letra</th><th>Alvo</th><th>Predição</th><th>Status</th></tr></thead>
+              <tbody id="testTableBody">
+                <tr><td colspan="4">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="logBox">Aguardando execução...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="t02.js"></script>
+</body>
+</html>

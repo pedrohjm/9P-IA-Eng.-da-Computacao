@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 05 — MLP Reconhecimento de Letras</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1180px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    input[type="file"] {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      width: 100%;
+    }
+
+    input[type="file"]::file-selector-button {
+      border: 1px solid var(--line);
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      padding: 6px 10px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-row button { width: auto; flex: 1 1 calc(50% - 6px); margin-top: 0; }
+
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    #draw {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      touch-action: none;
+      max-width: 100%;
+    }
+
+    .train-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .train-controls button { width: auto; flex: 1 1 120px; margin-top: 0; }
+
+    .dataset-info {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--accent);
+      margin-top: 8px;
+    }
+
+    .log {
+      height: 260px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    @media (max-width: 800px) {
+      .ag-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 05 — MLP Reconhecimento de Letras</h1>
+  <p class="sub">Demo em JavaScript usando TensorFlow.js — desenhe uma letra ou treine com um CSV (label + 784 pixels)</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: desenho + predição ───────────────────────── -->
+    <div class="panel">
+      <h2>Desenhar Letra</h2>
+      <div class="canvas-wrap">
+        <canvas id="draw" width="280" height="280"></canvas>
+      </div>
+      <div class="btn-row">
+        <button id="clear" type="button">Limpar</button>
+        <button class="btn-accent" id="predict" type="button">Predizer</button>
+        <button id="saveModel" type="button">Salvar Modelo</button>
+        <button id="loadModel" type="button">Carregar Modelo</button>
+      </div>
+      <p class="info-text" style="margin-top:10px;">
+        Para treinar, envie um CSV com uma coluna de label seguida por 784 colunas de pixels (0–255).
+        Dica: use o arquivo <strong style="color:var(--accent)">dataset_28x28_small.csv</strong>.
+      </p>
+    </div>
+
+    <!-- ── RIGHT: dataset/treino + log ─────────────────────── -->
+    <div class="right-col">
+      <div class="panel">
+        <h2>Dataset / Treino</h2>
+        <div class="section-label">Arquivo CSV</div>
+        <input id="csvFile" type="file" accept=".csv" />
+
+        <div class="train-controls">
+          <label>Épocas</label>
+          <input type="number" id="epochs" min="1" value="10" />
+          <label>Batch size</label>
+          <input type="number" id="batchSize" min="1" value="32" />
+        </div>
+
+        <div class="btn-row" style="margin-top:8px;">
+          <button id="loadCsv" type="button">Carregar CSV</button>
+          <button class="btn-accent" id="train" type="button">Treinar</button>
+        </div>
+
+        <div class="dataset-info" id="datasetInfo"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="log">Aguardando ação...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+<script src="t05.js"></script>
+</body>
+</html>

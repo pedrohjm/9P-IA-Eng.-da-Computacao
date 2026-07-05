@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 01 — Regra de Hebb</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1180px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .gate-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .gate-item {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: #081a2b;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+    }
+
+    .gate-item .gi { color: var(--accent); font-weight: bold; }
+    .gate-item .desc { display: block; font-size: 0.66rem; color: #5d7d94; margin-top: 2px; }
+
+    .metrics-log-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+
+    .result-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-bottom: 8px;
+    }
+
+    .result-metrics .metric { flex: 1 1 100px; border-bottom: none; margin: 0; padding-bottom: 0; }
+
+    .result-block {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .result-block:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+    .result-title {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--ok);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 2px;
+    }
+
+    .result-desc {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    table.data-table th {
+      color: var(--muted);
+      background: #0b1a2b;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 0.64rem;
+      letter-spacing: 0.5px;
+    }
+
+    table.data-table td.ok  { color: var(--ok); }
+    table.data-table td.err { color: var(--warn); }
+
+    .log {
+      height: 260px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    .results-scroll {
+      max-height: 560px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    @media (max-width: 800px) {
+      .ag-layout { grid-template-columns: 1fr; }
+      .metrics-log-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 01 — Regra de Hebb</h1>
+  <p class="sub">Aprendizado de portas lógicas bipolares (AND, OR, NAND, NOR)</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: informações e controle ─────────────────────── -->
+    <div class="panel">
+      <h2>Regra de Hebb</h2>
+      <div class="formula">Δw = x · y</div>
+      <p class="info-text">
+        Para cada amostra (x₁, x₂, y):<br>
+        w₁ += x₁·y &nbsp; w₂ += x₂·y &nbsp; bias += y<br>
+        Saída: sinal(x₁w₁ + x₂w₂ + bias)
+      </p>
+
+      <hr class="sep">
+      <h2>Portas Lógicas</h2>
+      <div class="gate-grid" id="gateGrid"></div>
+
+      <hr class="sep">
+      <button class="btn-accent" id="runBtn" type="button">▶ Treinar Todas as Portas</button>
+      <button id="resetBtn" type="button">↺ Reiniciar</button>
+    </div>
+
+    <!-- ── RIGHT: resultados + log ─────────────────────────── -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Resultados por Porta</h2>
+        <div class="results-scroll" id="resultsContainer">
+          <p class="info-text">Aguardando execução...</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="logBox">Aguardando execução...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="t01.js"></script>
+</body>
+</html>

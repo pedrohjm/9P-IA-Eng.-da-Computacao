@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 03 — MADALINE</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1180px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 10px);
+      grid-template-rows: repeat(7, 10px);
+      gap: 1px;
+    }
+
+    .pixel {
+      width: 10px;
+      height: 10px;
+      background: #081a2b;
+      border: 1px solid var(--line);
+    }
+
+    .pixel.on { background: var(--accent); border-color: var(--accent); }
+
+    .pixel-grid.big {
+      grid-template-columns: repeat(7, 30px);
+      grid-template-rows: repeat(7, 30px);
+      gap: 3px;
+    }
+
+    .pixel-grid.big .pixel {
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+
+    .pixel-grid.big .pixel:hover { border-color: var(--accent); }
+
+    .letter-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 10px;
+    }
+
+    .letter-card { text-align: center; }
+
+    .letter-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .draw-area { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+
+    .draw-result {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-width: 180px;
+    }
+
+    .draw-result .big-letter {
+      font-size: 2.4rem;
+      color: var(--pink);
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    .metrics-log-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      margin-top: 6px;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--line);
+      padding: 3px 6px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    table.data-table th {
+      color: var(--muted);
+      background: #0b1a2b;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 0.62rem;
+      letter-spacing: 0.5px;
+    }
+
+    table.data-table td.ok  { color: var(--ok); }
+    table.data-table td.err { color: var(--warn); }
+
+    .test-scroll { max-height: 220px; overflow-y: auto; }
+
+    .log {
+      height: 180px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    @media (max-width: 800px) {
+      .ag-layout { grid-template-columns: 1fr; }
+      .metrics-log-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 03 — MADALINE</h1>
+  <p class="sub">Reconhecimento de 13 letras (A–M) · matrizes bipolares 7×7</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: parâmetros e ações ───────────────────────── -->
+    <div class="panel">
+      <h2>Rede MADALINE</h2>
+      <div class="formula">wᵢ += α·(alvo − y)·xᵢ</div>
+      <p class="info-text">
+        13 neurônios lineares (um por letra),<br>
+        cada um treinado no esquema<br>
+        <strong style="color:var(--pink)">um-contra-todos</strong>.
+      </p>
+
+      <div class="row">
+        <label>Taxa de aprendizagem (α)</label>
+        <input type="number" id="alfaInput" min="0.001" max="1" step="0.005" value="0.05" />
+      </div>
+      <div class="row">
+        <label>Máx. de épocas</label>
+        <input type="number" id="maxEpocasInput" min="1" max="20000" value="1000" />
+      </div>
+
+      <hr class="sep">
+      <button class="btn-accent" id="trainBtn" type="button">▶ Treinar Rede</button>
+      <button id="testBtn" type="button" disabled>🔍 Testar Rede</button>
+      <button id="resetBtn" type="button">↺ Reiniciar Rede</button>
+    </div>
+
+    <!-- ── RIGHT: padrões + desenho + resultados + log ─────── -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Padrões Armazenados (A–M)</h2>
+        <div class="letter-gallery" id="letterGallery"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Desenhar e Reconhecer</h2>
+        <div class="draw-area">
+          <div class="pixel-grid big" id="drawGrid"></div>
+          <div class="draw-result">
+            <div class="section-label">Letra reconhecida</div>
+            <div class="big-letter" id="recognizedLetter">—</div>
+            <button id="recognizeBtn" type="button" disabled>Reconhecer</button>
+            <button id="clearDrawBtn" type="button">Limpar Desenho</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Estado / Teste</h2>
+        <div class="metrics-log-grid">
+          <div>
+            <div class="metric">
+              <span class="metric-label">Status</span>
+              <span class="metric-val" id="mStatus">Não treinada</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Época</span>
+              <span class="metric-val blue" id="mEpoca">0</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Erro total</span>
+              <span class="metric-val pink" id="mErro">—</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Acurácia</span>
+              <span class="metric-val" id="mAcc">—</span>
+            </div>
+          </div>
+          <div>
+            <div class="section-label">Teste com padrões armazenados</div>
+            <div class="test-scroll">
+              <table class="data-table">
+                <thead><tr><th>Real</th><th>Reconhecida</th><th>Status</th></tr></thead>
+                <tbody id="testTableBody">
+                  <tr><td colspan="3">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="logBox">Aguardando execução...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="t03.js"></script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 07 — MLP Previsão de Cotações (VIVA3)</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1200px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .graph-wrap { position: relative; }
+
+    .graph-canvas {
+      width: 100%;
+      height: 240px;
+      display: block;
+      background: #081523;
+    }
+
+    .graph-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .legend-item { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+    .metric-val.err  { color: var(--warn); }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      margin-top: 6px;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--line);
+      padding: 4px 6px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    table.data-table th {
+      color: var(--muted);
+      background: #0b1a2b;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 0.64rem;
+      letter-spacing: 0.5px;
+    }
+
+    .log {
+      height: 190px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    @media (max-width: 860px) {
+      .ag-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 07 — MLP · Previsão de Cotações (VIVA3)</h1>
+  <p class="sub">Multilayer Perceptron (1 camada oculta, ativação tanh) prevendo o próximo fechamento a partir do fechamento anterior</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: ações ────────────────────────────────────── -->
+    <div class="panel">
+      <h2>Rede MLP</h2>
+      <div class="formula">ŷ(t+1) = tanh(Σ w2·tanh(w1·x(t) + b1) + b2)</div>
+      <p class="info-text">
+        Entrada: fechamento normalizado do dia anterior.<br>
+        Treino: jan/2025 – jun/2025.<br>
+        Validação: 7 dias seguintes.
+      </p>
+
+      <button class="btn-accent" id="loadBtn" type="button">1) Carregar Dados Embutidos</button>
+
+      <hr class="sep">
+      <div class="row">
+        <label>Neurônios ocultos (2-16)</label>
+        <input type="number" id="hiddenInput" min="2" max="16" value="8" />
+      </div>
+      <button class="btn-accent" id="trainBtn" type="button" disabled>2) Treinar Rede</button>
+      <button id="validateBtn" type="button" disabled>3) Validar (7 dias)</button>
+      <button id="predictBtn" type="button" disabled>4) Prever Próximo Dia</button>
+    </div>
+
+    <!-- ── RIGHT: resumo + gráfico + treino + validação + predição + log ── -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Resumo dos Dados</h2>
+        <div class="metrics-grid">
+          <div class="metric"><span class="metric-label">Registros</span><span class="metric-val" id="mTotal">—</span></div>
+          <div class="metric"><span class="metric-label">Primeira data</span><span class="metric-val blue" id="mPrimeira">—</span></div>
+          <div class="metric"><span class="metric-label">Última data</span><span class="metric-val blue" id="mUltima">—</span></div>
+          <div class="metric"><span class="metric-label">Treino</span><span class="metric-val" id="mTreino">—</span></div>
+          <div class="metric"><span class="metric-label">Validação</span><span class="metric-val" id="mValidacao">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Gráfico — Fechamento (R$)</h2>
+        <div class="graph-wrap">
+          <canvas id="chartCanvas" class="graph-canvas" width="860" height="240"></canvas>
+        </div>
+        <div class="graph-legend">
+          <span class="legend-item">
+            <span style="color:var(--ok)">━</span> Treino &nbsp;
+            <span style="color:var(--accent)">━</span> Validação &nbsp;
+            <span style="color:var(--pink)">✦</span> Predição
+          </span>
+          <span class="legend-item" id="chartLabel">—</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Treinamento</h2>
+        <div class="metrics-grid">
+          <div class="metric"><span class="metric-label">Status</span><span class="metric-val" id="mStatusTreino">Não treinada</span></div>
+          <div class="metric"><span class="metric-label">Épocas</span><span class="metric-val blue" id="mEpocas">—</span></div>
+          <div class="metric"><span class="metric-label">MSE final (normalizado)</span><span class="metric-val pink" id="mMse">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Validação (7 dias)</h2>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Dia</th><th>Real (R$)</th><th>Predito (R$)</th><th>Erro Abs.</th></tr></thead>
+            <tbody id="validationTableBody"><tr><td colspan="4">—</td></tr></tbody>
+          </table>
+        </div>
+        <div class="metrics-grid" style="margin-top:8px;">
+          <div class="metric"><span class="metric-label">MAE</span><span class="metric-val" id="mMae">—</span></div>
+          <div class="metric"><span class="metric-label">RMSE</span><span class="metric-val" id="mRmse">—</span></div>
+          <div class="metric"><span class="metric-label">MAPE</span><span class="metric-val" id="mMape">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Predição do Próximo Dia</h2>
+        <div class="metrics-grid">
+          <div class="metric"><span class="metric-label">Último fechamento conhecido</span><span class="metric-val blue" id="mUltimoFechamento">—</span></div>
+          <div class="metric"><span class="metric-label">Predição próximo dia útil</span><span class="metric-val pink" id="mPredicao">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="logBox">Aguardando execução...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="t07.js"></script>
+</body>
+</html>

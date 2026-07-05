@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trabalho 04 — MLP Backpropagation</title>
+  <style>
+    :root {
+      --bg-a: #061422;
+      --bg-b: #0d243a;
+      --panel: #0d1d2f;
+      --panel-2: #10263d;
+      --line: #1e3f5f;
+      --ink: #d9f2ff;
+      --muted: #86a8bf;
+      --ok: #50ff5a;
+      --warn: #ff9a6d;
+      --accent: #00d39f;
+      --pink: #ff3f9b;
+      --mono: "Consolas", "Courier New", monospace;
+      --serif: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--serif);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 15%, rgba(255,63,155,0.17), transparent 26%),
+        radial-gradient(circle at 90% 90%, rgba(0,211,159,0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(1280px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+      padding: 16px;
+      max-height: 96vh;
+      overflow-y: auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .ag-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: var(--panel-2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ok);
+    }
+
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .formula {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--accent);
+      background: #081a2b;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .info-text {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.6;
+    }
+
+    .sep { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.70rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin: 10px 0 5px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      border: 1px solid var(--line);
+      background: #0b1a2b;
+      color: var(--ink);
+      padding: 5px 6px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+    }
+
+    .row input[type="number"] { width: 90px; }
+
+    button {
+      border: 1px solid var(--line);
+      padding: 9px 14px;
+      background: #102840;
+      color: var(--ink);
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-accent { background: #113928; border-color: var(--ok); color: var(--ok); }
+
+    .table-scroll { overflow-x: auto; margin-bottom: 6px; }
+
+    table.data-table {
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--line);
+      padding: 3px 6px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    table.data-table th {
+      color: var(--muted);
+      background: #0b1a2b;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 0.64rem;
+      letter-spacing: 0.5px;
+    }
+
+    table.data-table td.divider, table.data-table th.divider { border-left: 2px solid var(--line); }
+    table.data-table td.ok  { color: var(--ok); }
+    table.data-table td.err { color: var(--warn); }
+
+    table.data-table input[type="number"] {
+      width: 62px;
+      text-align: center;
+      padding: 3px 2px;
+      font-size: 0.72rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      border-bottom: 1px solid #0e2035;
+      padding-bottom: 5px;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-val   { color: var(--ok); }
+    .metric-val.blue { color: var(--accent); }
+    .metric-val.pink { color: var(--pink); }
+    .metric-val.err  { color: var(--warn); }
+
+    .log {
+      height: 200px;
+      border: 1px solid var(--line);
+      background: #081523;
+      font-family: var(--mono);
+      padding: 8px;
+      font-size: 0.73rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    @media (max-width: 900px) {
+      .ag-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">Trabalho 04 — MLP Backpropagation</h1>
+  <p class="sub">Multilayer Perceptron com retropropagação (ativação tanh) — topologia configurável</p>
+
+  <div class="ag-layout">
+
+    <!-- ── LEFT: configuração ─────────────────────────────── -->
+    <div class="panel">
+      <h2>Configuração da Rede</h2>
+      <div class="formula">f(x) = tanh(x)</div>
+
+      <div class="row"><label>Entradas (1-8)</label><input type="number" id="cfgEntrada" min="1" max="8" value="3" /></div>
+      <div class="row"><label>Neurônios ocultos (1-8)</label><input type="number" id="cfgOculta" min="1" max="8" value="2" /></div>
+      <div class="row"><label>Saídas (1-8)</label><input type="number" id="cfgSaida" min="1" max="8" value="3" /></div>
+      <div class="row"><label>Padrões (1-20)</label><input type="number" id="cfgPadroes" min="1" max="20" value="3" /></div>
+      <div class="row"><label>Taxa de aprendizagem (α)</label><input type="number" id="cfgAlpha" step="0.001" value="0.01" /></div>
+      <div class="row"><label>Erro alvo</label><input type="number" id="cfgErroAlvo" step="0.0001" value="0.01" /></div>
+      <div class="row"><label>Máx. de ciclos</label><input type="number" id="cfgMaxCiclos" step="100" value="100000" /></div>
+
+      <hr class="sep">
+      <button class="btn-accent" id="applyBtn" type="button">Aplicar Configuração</button>
+      <button id="resetConfigBtn" type="button">↺ Resetar Configuração</button>
+
+      <hr class="sep">
+      <button class="btn-accent" id="trainBtn" type="button">▶ Treinar Rede</button>
+    </div>
+
+    <!-- ── RIGHT: padrões + pesos + resultado + log ─────────── -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Padrões de Treinamento (X → T)</h2>
+        <div class="table-scroll" id="patternsTable"></div>
+        <button id="resetPatternsBtn" type="button">↺ Resetar Padrões</button>
+      </div>
+
+      <div class="panel">
+        <h2>Pesos Iniciais</h2>
+        <div class="section-label">v [ entrada ][ oculta ] + bias v0</div>
+        <div class="table-scroll" id="weightsVTable"></div>
+        <div class="section-label">w [ oculta ][ saída ] + bias w0</div>
+        <div class="table-scroll" id="weightsWTable"></div>
+        <button id="resetWeightsBtn" type="button">↺ Resetar Pesos</button>
+      </div>
+
+      <div class="panel">
+        <h2>Resultado do Treinamento</h2>
+        <div class="metrics-grid">
+          <div class="metric"><span class="metric-label">Status</span><span class="metric-val" id="mStatus">—</span></div>
+          <div class="metric"><span class="metric-label">Ciclos executados</span><span class="metric-val blue" id="mCiclos">—</span></div>
+          <div class="metric"><span class="metric-label">Erro final</span><span class="metric-val pink" id="mErro">—</span></div>
+          <div class="metric"><span class="metric-label">Erro alvo</span><span class="metric-val" id="mErroAlvo">—</span></div>
+        </div>
+        <div class="section-label">Saída da rede (contínua · limiarizada · alvo)</div>
+        <div class="table-scroll" id="resultsTable"><p class="info-text">Aguardando treinamento...</p></div>
+        <div class="section-label" style="margin-top:10px;">Pesos finais</div>
+        <div class="table-scroll" id="finalVTable"></div>
+        <div class="table-scroll" id="finalWTable"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Log de Execução</h2>
+        <div class="log" id="logBox">Aguardando execução...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="t04.js"></script>
+</body>
+</html>
