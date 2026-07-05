@@ -1,7 +1,7 @@
 param(
-    [string]$BasePath = "..\by_class",
-    [string]$OutCsv = "..\dataset_28x28.csv",
-    [string]$OutClasses = "..\classes.txt",
+    [string]$BasePath = "..\datasets\Trabalho 06 - by_class",
+    [string]$OutCsv = "..\datasets\Trabalho 06 - dataset_28x28.csv",
+    [string]$OutClasses = "..\datasets\Trabalho 06 - classes.txt",
     [int]$ImageSize = 28,
     [int]$MaxPerClass = 350,
     [int]$Seed = 42
